@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Gtkmon
+Version=0.9
+Exec=/usr/share/gtkmon/gtkmon.py
+Comment=interfaz grafica para femon
+Icon=/usr/share/gtkmon/icon.png
+Type=Application
+Terminal=false
+StartupNotify=true
+Encoding=UTF-8
+Categories=
