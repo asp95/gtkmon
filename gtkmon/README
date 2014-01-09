@@ -1,0 +1,8 @@
+gtkmon 1.0 - 2014|PEREYRA, Armando
+
+dependencias: python-gtk2, dvb-apps, python-vte, python-gobject, python-gst0.10, libcanberra-gtk-module
+se puede acceder al programa ejecutando directamente gtkmon.py, pero la parte web falla si se lanza el programa desde un launcher apuntado directamente a este archivo.
+
+Para eso está gtkmon_ln.sh, en éste se tiene que configurar la ruta completa donde se va a alojar el programa.
+
+ante cualquier consulta, preguntar en el foro.

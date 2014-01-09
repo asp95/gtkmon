@@ -1,0 +1,46 @@
+body{
+	margin: 0;
+	padding: 0;
+	font-family: Tahoma,Arial,Helvetica,sans-serif;
+	text-align: center;
+}
+#princ{
+	width: 100%;
+}
+#fe{
+	font-weight: bold;
+	padding: 0.2em;
+	border-bottom: 1px solid rgba(0,0,0,0.2);
+}
+#stat{
+	border-top: 1px solid rgba(255,255,255,0.5);
+	border-bottom: 1px solid rgba(0,0,0,0.2);
+	font-size: 13px;
+	padding: 0.2em;
+}
+.cubo{
+	border-top: 1px solid rgba(255,255,255,0.5);
+	border-bottom: 1px solid rgba(0,0,0,0.2);
+	border-left: 1px solid rgba(255,255,255,0.5);
+	border-right: 1px solid rgba(0,0,0,0.2);
+	display: inline-block;
+	width: calc(25% - 3px);
+}
+.cubonom{
+	font-size: 13px;
+	font-weight: bold;
+}
+.cubores{
+	padding: 1.5em;
+	font-size: 40px;
+}
+#chvis{
+	position: fixed;
+	padding: 1em;
+	background: #cec;
+	bottom: 0;
+	right:0;
+}
+#slider{
+	display: none;
+}

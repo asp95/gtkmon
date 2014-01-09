@@ -1,6 +1,26 @@
 #! /usr/bin/env python
 # -*- coding: UTF-8 -*-
-import gtk, sys, os, gobject, pango, gst, re, vte
+import gtk, sys, os, gobject, pango, gst, re, vte, time, socket
+
+#bloque para sacar la ip##################################################
+import fcntl, struct
+def get_interface_ip(ifname):
+	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s',
+                                ifname[:15]))[20:24])
+
+def get_lan_ip():
+    ip = socket.gethostbyname(socket.gethostname())
+    if ip.startswith("127.") and os.name != "nt":
+        interfaces = ["eth0","eth1","eth2","wlan0","wlan1","wifi0","ath0","ath1","ppp0"]
+        for ifname in interfaces:
+            try:
+                ip = get_interface_ip(ifname)
+                break
+            except IOError:
+                pass
+    return ip
+#####################################################################
 
 class princ:
 	def __init__(self):
@@ -12,27 +32,32 @@ class princ:
 		self.vb2 = gtk.VBox()
 		self.vb3 = gtk.VBox()
 		self.vb4 = gtk.VBox()
-		self.labstatus = gtk.Label('Estado')
+		self.labstatus = gtk.Label('Cargando')
 		self.labmodel = gtk.Label()
-		self.labsignal = gtk.Label('Señal:')
+		self.labsignal = gtk.Label('Señal')
 		self.labsignalnum = gtk.Label('---.-%')
-		self.labsnr = gtk.Label('Relación señal/ruido:')
+		self.labsnr = gtk.Label('Relación señal/ruido')
 		self.labsnrnum = gtk.Label('---')
-		self.labber = gtk.Label('Error de Bitrate:')
+		self.labber = gtk.Label('Bitrate erróneo')
 		self.labbernum = gtk.Label('--')
-		self.labunc = gtk.Label('Paquetes erroneos:')
+		self.labunc = gtk.Label('Paquetes incorregibles')
 		self.labuncnum = gtk.Label('--')
 		self.seph1 = gtk.HSeparator()
 		self.seph2 = gtk.HSeparator()
 		self.seph3 = gtk.HSeparator()
 		self.seph4 = gtk.HSeparator()
+		self.seph5 = gtk.HSeparator()
 		self.sepv1 = gtk.VSeparator()
 		self.sepv2 = gtk.VSeparator()
 		self.botaudio = gtk.ToggleButton('Medidor de señal por audio')
+		self.botweb = gtk.LinkButton('http://' + get_lan_ip() + ':5364/','http://' + get_lan_ip() + ':5364/' )
 		self.terminal = vte.Terminal()
+		self.terminal2 = vte.Terminal()
 		self.contador = 0 #para arreglar un bug en la nueva esctuctura de lecturamodel()
 		
 		self.win.add(self.vb)
+		self.vb.pack_end(self.botweb, 0, 0, 0)
+		self.vb.pack_end(self.seph5, 0, 0, 0)
 		self.vb.pack_end(self.botaudio, 0, 0, 0)
 		self.vb.pack_end(self.seph4, 0, 0, 0)
 		self.vb.pack_end(self.hb1, 1, 1, 0)
@@ -41,7 +66,7 @@ class princ:
 		self.vb.pack_end(self.seph2, 0, 0, 0)
 		self.vb.pack_end(self.labstatus, 0, 0, 0)
 		self.vb.pack_end(self.seph3, 0, 0, 0)
-		self.vb.pack_end(self.labmodel, 0, 0, 0)
+		self.vb.pack_end(self.labmodel, 0, 0, 0)#esta al reves, cuidado
 		self.hb1.pack_start(self.vb1, 1, 1, 0)
 		self.hb1.pack_start(self.sepv1, 0, 0, 0)
 		self.hb1.pack_start(self.vb2, 1, 1, 0)
@@ -60,8 +85,11 @@ class princ:
 		self.terminal.fork_command('femon')
 		self.terminal.set_size(90, 5)
 
+		self.terminal2.fork_command('./server.py')
+		self.terminal2.set_size(90, 5)
+
 		self.win.set_title('Gtkmon')
-		self.win.set_size_request(300, 300)
+		self.win.set_size_request(340, 320)
 
 		font1 = pango.FontDescription('Ubuntu Bold 13')
 		font2 = pango.FontDescription('Ubuntu Bold 10')
@@ -88,7 +116,7 @@ Y: bits de sincronización encontrados
 L: señal usable''')
 
 		self.win.show_all()
-		self.win.set_resizable(0)
+		#self.win.set_resizable(0)
 
 		self.win.connect('destroy', self.quit)
 		self.botaudio.connect('toggled', self.activaudio)
@@ -146,6 +174,10 @@ L: señal usable''')
 
 #actualizador de datos en la interfaz##################################
 	def actualizar(self):
+		f=open("./data.lst","w")
+		f.write(self.model[3:] + '|' + str(self.status) + '|' + str(self.signal) + '|' + str(self.unc) + '|' + str(self.ber) + 
+		'|' + str(self.snr))
+		f.close()
 		#signalf1 = round(self.signal, 1)
 		self.labsignalnum.set_text(str(self.signal)+' %')
 		self.labuncnum.set_text(str(self.unc))
@@ -257,8 +289,11 @@ L: señal usable''')
 
 #controla si desde fomen sale algo (reestructurado) ##
 	def errorf(self, b):
-			self.labmodel.set_text('ERROR: no hay dispositivo!!')
-			self.labmodel.modify_fg(gtk.STATE_NORMAL, gtk.gdk.Color('#B60000'))
+			msj = 'no hay dispositivo'
+			f=open("./data.lst","w")
+			f.write(msj)
+			f.close()
+			self.labmodel.set_text(msj)
 			self.labmodel.set_tooltip_text('''femon, el programa cual Gtkmon recoje los datos,
 se ha cerrado inesperadamente.
 Comunmente esto significa que no se encuentra ningun dispositivo en el sistema. 
@@ -271,6 +306,11 @@ Cierre el programa''')
 		return True
 
 	def quit(self, b):
+		f=open("./data.lst","w")
+		f.write('SERVIDOR CERRADO')
+		f.close()
+		time.sleep(1)
 		gtk.main_quit()
+	
 princ()
 gtk.main()

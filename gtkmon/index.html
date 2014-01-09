@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Gtkmon</title>
+	<link rel="shortcut icon" href="./fav.png">
+	<link rel="stylesheet" href="wemon.css" id='css' >
+	<script language="javascript">
+	function chvis() {
+		document.getElementById('princ').style.zoom = 0;
+		document.getElementById('slider').value = 0;
+		if (document.getElementById('chbc').checked){
+			document.getElementById('css').href = 'wemon_c.css';
+		} else {
+			document.getElementById('css').href = 'wemon.css';
+		}
+	}
+	</script>
+</head>
+<body>
+	<div id="princ">
+		<div id="fe"></div>
+		<div id="stat">Cargando</div>
+		<div class='cubo' id="csignal">
+			<div class="cubonom">Señal</div>
+			<div class="cubores" id="signal">---.-%</div>
+		</div><div class='cubo' id="csnr">
+			<div class="cubonom">Relación señal/ruido</div>
+			<div class="cubores" id="snr">---</div>
+		</div>
+		<div id="cunc" class="cubo">
+			<div class="cubonom">Paquetes incorregibles</div>
+			<div class="cubores" id="unc">--</div>
+		</div><div id="cber" class="cubo">
+			<div class="cubonom">Bitrate erróneo</div>
+			<div class="cubores" id="ber">--</div>
+		</div>
+
+	</div>
+	<div id="sliderc"><input id="slider" type ="range" min ="1.0" max="3.0" step ="0.1" value ="1.0" onchange="zoom()" /></div>
+	<label id='chvis'> <input id='chbc' type="checkbox" onclick="chvis()">visor grande</label>
+
+	<script>
+	function zoom () {
+		document.getElementById('princ').style.zoom = document.getElementById('slider').value;
+	}
+	function makeStat (valp) {
+		if (valp != 'SCVYL'){
+			document.getElementById('stat').style.color = '#FF2121';
+			document.getElementById('stat').innerHTML = 'Señal incompleta (' + valp + ')';
+			var a = 1;
+
+			if (valp == 'S V L' || typeof valp == 'undefined'){
+				document.getElementById('stat').style.color = '#000';
+				document.getElementById('stat').innerHTML = 'Dispositivo apagado';
+				document.getElementById('signal').innerHTML = '---.-%';
+				document.getElementById('unc').innerHTML = '--';
+				document.getElementById('ber').innerHTML = '--';
+				document.getElementById('snr').innerHTML = '---';
+				document.getElementById('signal').style.color = '#000';
+				document.getElementById('ber').style.color = '#000';
+				document.getElementById('snr').style.color = '#000';
+				document.getElementById('unc').style.color = '#000';
+				var a = 2;
+			}
+				
+			if (valp == 'SC   '){
+				document.getElementById('stat').style.color = '#00f';
+				document.getElementById('stat').innerHTML = 'Sintonizando';
+				var a = 1;
+			}
+
+			if (valp == '     '){
+				document.getElementById('stat').style.color ='#B60000';
+				document.getElementById('stat').innerHTML ='Sin señal comprensible';
+				var a = 1;
+			}
+		}else{
+			document.getElementById('stat').style.color ='#009000';
+			document.getElementById('stat').innerHTML ='Señal completa';
+			var a = 1;
+		}
+		return a;
+	}
+	function makeSignal(valp){
+		document.getElementById('signal').innerHTML = valp + ' %';
+		if (valp >= 65){
+			document.getElementById('signal').style.color ='#009000';
+		}
+		if (valp < 65 && valp >= 40){
+			document.getElementById('signal').style.color ='#DC8A00';
+		}
+		if (valp < 40){
+			document.getElementById('signal').style.color ='#B60000';
+		}
+	}
+	function makeSnr (valp){
+		document.getElementById('snr').innerHTML = valp + ' dB';
+		if (valp >= 17){
+			document.getElementById('snr').style.color = '#009000';
+		}
+		if (valp < 17 && valp > 5){
+			document.getElementById('snr').style.color = '#B60000';
+		}
+		if (valp <= 5){
+			document.getElementById('snr').style.color = 'black';
+		}
+	}
+	function makeUnc (valp) {
+		document.getElementById('unc').innerHTML = valp;
+		if (valp != 0){
+			document.getElementById('unc').style.color = '#B60000';
+		}
+		if (valp == 0){
+			document.getElementById('unc').style.color = 'black';
+		}
+	}
+	function makeBer (valp) {
+		document.getElementById('ber').innerHTML = valp;
+		if (valp != 0){
+			document.getElementById('ber').style.color = '#00f';
+		}
+		if (valp == 0){
+			document.getElementById('ber').style.color = '#000';
+		}
+	}
+	function act(){
+		xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("GET","data.lst",false);
+		xmlhttp.send();
+		var resarr = xmlhttp.responseText.split('|');
+		document.getElementById('fe').innerHTML = resarr[0];
+		var a = makeSignal(resarr[2]);
+		if (a != 2){
+			makeUnc(resarr[3]);
+			makeBer(resarr[4]);
+			makeSnr(resarr[5]);
+			makeStat(resarr[1]);	
+		}
+
+		
+		setTimeout("act()", 1000);
+	}
+	act();
+	</script>
+
+</body>
+</html>
